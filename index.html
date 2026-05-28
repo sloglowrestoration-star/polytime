@@ -23,6 +23,14 @@
         <label><input type="radio" name="preference" value="night" /> Night Person</label>
       </section>
       <section class="sidebar-section">
+        <h2>Import Calendar</h2>
+        <label class="import-label" for="ics-input">
+          Upload .ics file
+          <input type="file" id="ics-input" accept=".ics" hidden />
+        </label>
+        <p id="ics-status" class="ics-status"></p>
+      </section>
+      <section class="sidebar-section">
         <button id="generate-btn" class="primary-btn">Generate Schedule</button>
         <button id="clear-blocks-btn" class="secondary-btn">Clear Blocks</button>
       </section>

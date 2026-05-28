@@ -73,6 +73,15 @@ body {
 .schedule-summary .course-row strong { display: block; }
 .schedule-summary .course-row .meta { color: var(--muted); font-size: 12px; }
 .empty-msg { color: var(--muted); font-style: italic; }
+.import-label {
+  display: block; padding: 8px 12px; border-radius: 6px;
+  border: 1px dashed var(--accent); color: var(--accent);
+  font-size: 13px; cursor: pointer; text-align: center;
+}
+.import-label:hover { background: #eff6ff; }
+.ics-status { font-size: 12px; margin: 4px 0 0; min-height: 16px; }
+.ics-ok   { color: #15803d; }
+.ics-warn { color: #b45309; }
 .warning-box {
   background: #fef9c3; border: 1px solid #fde047;
   border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;
