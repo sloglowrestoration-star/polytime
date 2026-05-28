@@ -3,7 +3,7 @@ import {
   clearSchedule, getBlocks, clearBlocks
 } from "./calendar.js";
 import {
-  filterSections, generatePermutations, sortSchedules
+  filterSections, generatePermutations, sortSchedules, detectWarnings
 } from "./optimizer.js";
 
 const state = {
@@ -39,13 +39,18 @@ function renderCourseList() {
   });
 }
 
-function renderSummary(schedule) {
+function renderSummary(schedule, warnings = []) {
   const box = document.getElementById("schedule-summary");
   if (!schedule || schedule.length === 0) {
     box.innerHTML = `<p class="empty-msg">No valid schedule found. Try removing block-outs or excluding a course.</p>`;
     return;
   }
-  box.innerHTML = schedule
+  const warningHtml = warnings.length > 0
+    ? `<div class="warning-box">
+        ⚠ ${warnings.map(w => `<div>${w}</div>`).join("")}
+       </div>`
+    : "";
+  box.innerHTML = warningHtml + schedule
     .slice()
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
     .map(s => `
@@ -79,8 +84,9 @@ function onGenerate() {
     renderSummary(null);
     return;
   }
+  const warnings = detectWarnings(top, state.preference);
   renderSchedule(top);
-  renderSummary(top);
+  renderSummary(top, warnings);
 }
 
 function wireControls() {

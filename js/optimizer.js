@@ -59,6 +59,24 @@ export function averageStartMinutes(schedule) {
   return sum / schedule.length;
 }
 
+// Thresholds: night person warned about classes before 10am; morning person warned after 3pm
+const NIGHT_EARLY_CUTOFF  = timeToSlot("10:00"); // slot 6
+const MORNING_LATE_CUTOFF = timeToSlot("15:00"); // slot 16
+
+export function detectWarnings(schedule, preference) {
+  const warnings = [];
+  schedule.forEach(section => {
+    const start = timeToSlot(section.startTime);
+    if (preference === "night" && start < NIGHT_EARLY_CUTOFF) {
+      warnings.push(`${section.courseId} starts at ${section.startTime} — early for a Night Person`);
+    }
+    if (preference === "morning" && start >= MORNING_LATE_CUTOFF) {
+      warnings.push(`${section.courseId} starts at ${section.startTime} — late for a Morning Person`);
+    }
+  });
+  return warnings;
+}
+
 export function sortSchedules(permutations, preference) {
   const copy = [...permutations];
   copy.sort((a, b) => {

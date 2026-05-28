@@ -1,6 +1,6 @@
 import {
   timesOverlap, blockConflicts, filterSections,
-  generatePermutations, sortSchedules
+  generatePermutations, sortSchedules, detectWarnings
 } from "../js/optimizer.js";
 
 const A = { id:"A1", days:["M","W"], startTime:"09:00", endTime:"10:00" };
@@ -68,4 +68,40 @@ test("sortSchedules night: latest avg start first", () => {
   const late  = [{ days:["M"], startTime:"15:00", endTime:"16:00" }];
   const sorted = sortSchedules([early, late], "night");
   expect(sorted[0]).toBe(late);
+});
+
+// detectWarnings
+test("detectWarnings: night person with early class gets a warning", () => {
+  const schedule = [
+    { courseId:"CPE357", startTime:"08:10", endTime:"09:00", days:["M","W","F"] },
+    { courseId:"BUS346", startTime:"12:10", endTime:"13:30", days:["T","R"] }
+  ];
+  const warnings = detectWarnings(schedule, "night");
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]).toMatch(/CPE357/);
+  expect(warnings[0]).toMatch(/08:10/);
+});
+test("detectWarnings: night person with all-late classes gets no warning", () => {
+  const schedule = [
+    { courseId:"MATH142", startTime:"11:10", endTime:"12:00", days:["M","W","F"] },
+    { courseId:"CHEM124", startTime:"17:10", endTime:"18:30", days:["T","R"] }
+  ];
+  expect(detectWarnings(schedule, "night")).toHaveLength(0);
+});
+test("detectWarnings: morning person with late class gets a warning", () => {
+  const schedule = [
+    { courseId:"BUS212", startTime:"16:10", endTime:"17:30", days:["M","W"] },
+    { courseId:"PSY201", startTime:"09:10", endTime:"10:00", days:["T","R"] }
+  ];
+  const warnings = detectWarnings(schedule, "morning");
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]).toMatch(/BUS212/);
+  expect(warnings[0]).toMatch(/16:10/);
+});
+test("detectWarnings: morning person with all-early classes gets no warning", () => {
+  const schedule = [
+    { courseId:"CSC225", startTime:"09:10", endTime:"10:00", days:["M","W","F"] },
+    { courseId:"ENGL134", startTime:"08:10", endTime:"09:30", days:["T","R"] }
+  ];
+  expect(detectWarnings(schedule, "morning")).toHaveLength(0);
 });
