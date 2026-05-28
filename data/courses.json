@@ -1,0 +1,123 @@
+[
+  {
+    "id": "CPE357",
+    "name": "Systems Programming",
+    "professor": "Dr. Nico Bell",
+    "rating": 4.6,
+    "sections": [
+      { "id": "CPE357-01", "days": ["M","W","F"], "startTime": "08:10", "endTime": "09:00", "room": "14-256" },
+      { "id": "CPE357-02", "days": ["T","R"],     "startTime": "12:10", "endTime": "13:30", "room": "14-256" }
+    ]
+  },
+  {
+    "id": "CSC225",
+    "name": "Introduction to Computer Organization",
+    "professor": "Dr. Aisha Tan",
+    "rating": 4.1,
+    "sections": [
+      { "id": "CSC225-01", "days": ["M","W","F"], "startTime": "09:10", "endTime": "10:00", "room": "14-240" },
+      { "id": "CSC225-02", "days": ["T","R"],     "startTime": "14:10", "endTime": "15:30", "room": "14-240" }
+    ]
+  },
+  {
+    "id": "BUS346",
+    "name": "Principles of Marketing",
+    "professor": "Dr. Marcus Hale",
+    "rating": 4.3,
+    "sections": [
+      { "id": "BUS346-01", "days": ["M","W"], "startTime": "10:10", "endTime": "11:30", "room": "03-213" },
+      { "id": "BUS346-02", "days": ["T","R"], "startTime": "09:40", "endTime": "11:00", "room": "03-213" },
+      { "id": "BUS346-03", "days": ["M","W"], "startTime": "15:10", "endTime": "16:30", "room": "03-213" }
+    ]
+  },
+  {
+    "id": "MATH141",
+    "name": "Calculus I",
+    "professor": "Dr. Priya Shah",
+    "rating": 3.8,
+    "sections": [
+      { "id": "MATH141-01", "days": ["M","T","W","R","F"], "startTime": "07:10", "endTime": "08:00", "room": "38-130" },
+      { "id": "MATH141-02", "days": ["M","T","W","R","F"], "startTime": "13:10", "endTime": "14:00", "room": "38-130" }
+    ]
+  },
+  {
+    "id": "MATH142",
+    "name": "Calculus II",
+    "professor": "Dr. Owen Park",
+    "rating": 4.0,
+    "sections": [
+      { "id": "MATH142-01", "days": ["M","W","F"], "startTime": "11:10", "endTime": "12:00", "room": "38-138" },
+      { "id": "MATH142-02", "days": ["T","R"],     "startTime": "16:10", "endTime": "17:30", "room": "38-138" }
+    ]
+  },
+  {
+    "id": "ENGL134",
+    "name": "Writing and Rhetoric",
+    "professor": "Dr. Lila Romero",
+    "rating": 4.5,
+    "sections": [
+      { "id": "ENGL134-01", "days": ["T","R"], "startTime": "08:10", "endTime": "09:30", "room": "47-21" },
+      { "id": "ENGL134-02", "days": ["M","W"], "startTime": "14:10", "endTime": "15:30", "room": "47-21" }
+    ]
+  },
+  {
+    "id": "ECON222",
+    "name": "Macroeconomics",
+    "professor": "Dr. Henry Cho",
+    "rating": 3.6,
+    "sections": [
+      { "id": "ECON222-01", "days": ["M","W","F"], "startTime": "10:10", "endTime": "11:00", "room": "03-114" },
+      { "id": "ECON222-02", "days": ["T","R"],     "startTime": "11:10", "endTime": "12:30", "room": "03-114" }
+    ]
+  },
+  {
+    "id": "PHYS141",
+    "name": "General Physics I",
+    "professor": "Dr. Sasha Vance",
+    "rating": 3.9,
+    "sections": [
+      { "id": "PHYS141-01", "days": ["M","W","F"], "startTime": "13:10", "endTime": "14:00", "room": "180-101" },
+      { "id": "PHYS141-02", "days": ["T","R"],     "startTime": "08:10", "endTime": "09:30", "room": "180-101" }
+    ]
+  },
+  {
+    "id": "CHEM124",
+    "name": "General Chemistry",
+    "professor": "Dr. Ruth Klein",
+    "rating": 3.4,
+    "sections": [
+      { "id": "CHEM124-01", "days": ["M","W"], "startTime": "12:10", "endTime": "13:30", "room": "52-E27" },
+      { "id": "CHEM124-02", "days": ["T","R"], "startTime": "17:10", "endTime": "18:30", "room": "52-E27" }
+    ]
+  },
+  {
+    "id": "PSY201",
+    "name": "General Psychology",
+    "professor": "Dr. James Olin",
+    "rating": 4.8,
+    "sections": [
+      { "id": "PSY201-01", "days": ["T","R"],     "startTime": "13:10", "endTime": "14:30", "room": "47-24" },
+      { "id": "PSY201-02", "days": ["M","W","F"], "startTime": "09:10", "endTime": "10:00", "room": "47-24" }
+    ]
+  },
+  {
+    "id": "BUS212",
+    "name": "Financial Accounting",
+    "professor": "Dr. Naomi Frost",
+    "rating": 4.2,
+    "sections": [
+      { "id": "BUS212-01", "days": ["M","W"], "startTime": "16:10", "endTime": "17:30", "room": "03-201" },
+      { "id": "BUS212-02", "days": ["T","R"], "startTime": "10:10", "endTime": "11:30", "room": "03-201" }
+    ]
+  },
+  {
+    "id": "STAT218",
+    "name": "Applied Statistics for Engineers",
+    "professor": "Dr. Mia Holloway",
+    "rating": 3.7,
+    "sections": [
+      { "id": "STAT218-01", "days": ["M","W","F"], "startTime": "14:10", "endTime": "15:00", "room": "38-102" },
+      { "id": "STAT218-02", "days": ["T","R"],     "startTime": "15:40", "endTime": "17:00", "room": "38-102" }
+    ]
+  }
+]

@@ -1,0 +1,75 @@
+:root {
+  --blocked: #ef4444;
+  --scheduled: #3b82f6;
+  --available: #f9fafb;
+  --border: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #1d4ed8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: #ffffff;
+}
+.app-header {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.app-header h1 { margin: 0; font-size: 20px; }
+.tagline { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.app-main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  padding: 16px;
+  height: calc(100vh - 70px);
+}
+.sidebar { overflow-y: auto; }
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-section h2 { font-size: 14px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.course-list { list-style: none; padding: 0; margin: 0; }
+.course-list li { padding: 4px 0; font-size: 14px; }
+.primary-btn {
+  background: var(--accent); color: white; border: 0;
+  padding: 10px 14px; border-radius: 6px; cursor: pointer; width: 100%;
+  font-weight: 600;
+}
+.secondary-btn {
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  padding: 8px 12px; border-radius: 6px; cursor: pointer; width: 100%;
+  margin-top: 8px;
+}
+.calendar-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+.calendar {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  grid-auto-rows: 24px;
+  user-select: none;
+}
+.cal-header {
+  background: #f3f4f6; border-bottom: 1px solid var(--border);
+  text-align: center; font-weight: 600; font-size: 13px; padding: 6px 0;
+  position: sticky; top: 0; z-index: 1;
+}
+.cal-time-label {
+  font-size: 11px; color: var(--muted);
+  border-right: 1px solid var(--border); padding: 0 4px; text-align: right;
+}
+.cal-cell {
+  background: var(--available);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px dotted var(--border);
+  cursor: pointer;
+}
+.cal-cell.blocked { background: var(--blocked); }
+.cal-cell.scheduled { background: var(--scheduled); color: white; font-size: 11px; padding: 2px 4px; overflow: hidden; }
+.schedule-summary { font-size: 13px; }
+.schedule-summary .course-row {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.schedule-summary .course-row strong { display: block; }
+.schedule-summary .course-row .meta { color: var(--muted); font-size: 12px; }
+.empty-msg { color: var(--muted); font-style: italic; }

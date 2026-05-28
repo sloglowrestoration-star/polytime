@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolyTime &ndash; Cal Poly Schedule Optimizer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>PolyTime</h1>
+    <p class="tagline">Life first. Classes second.</p>
+  </header>
+  <main class="app-main">
+    <aside class="sidebar">
+      <section class="sidebar-section">
+        <h2>Courses</h2>
+        <ul id="course-list" class="course-list"></ul>
+      </section>
+      <section class="sidebar-section">
+        <h2>Preference</h2>
+        <label><input type="radio" name="preference" value="morning" checked /> Morning Person</label>
+        <label><input type="radio" name="preference" value="night" /> Night Person</label>
+      </section>
+      <section class="sidebar-section">
+        <button id="generate-btn" class="primary-btn">Generate Schedule</button>
+        <button id="clear-blocks-btn" class="secondary-btn">Clear Blocks</button>
+      </section>
+      <section class="sidebar-section">
+        <h2>Top Schedule</h2>
+        <div id="schedule-summary" class="schedule-summary">
+          <p class="empty-msg">Click &ldquo;Generate Schedule&rdquo; to see results.</p>
+        </div>
+      </section>
+    </aside>
+    <section class="calendar-wrap">
+      <div id="calendar" class="calendar" aria-label="Weekly calendar"></div>
+    </section>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
