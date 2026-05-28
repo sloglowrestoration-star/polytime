@@ -1,0 +1,70 @@
+import { timeToSlot, blockKey } from "./calendar.js";
+
+export function timesOverlap(a, b) {
+  const sharedDay = a.days.some(d => b.days.includes(d));
+  if (!sharedDay) return false;
+  const aStart = timeToSlot(a.startTime);
+  const aEnd   = timeToSlot(a.endTime);
+  const bStart = timeToSlot(b.startTime);
+  const bEnd   = timeToSlot(b.endTime);
+  return aStart < bEnd && bStart < aEnd;
+}
+
+export function blockConflicts(section, blocks) {
+  const start = timeToSlot(section.startTime);
+  const end   = timeToSlot(section.endTime);
+  for (const day of section.days) {
+    for (let s = start; s < end; s++) {
+      if (blocks.has(blockKey(day, s))) return true;
+    }
+  }
+  return false;
+}
+
+export function filterSections(courses, blocks) {
+  const result = [];
+  for (const course of courses) {
+    const surviving = course.sections.filter(sec => !blockConflicts(sec, blocks));
+    if (surviving.length > 0) {
+      result.push({ ...course, sections: surviving });
+    }
+  }
+  return result;
+}
+
+export function generatePermutations(courses) {
+  if (courses.length === 0) return [];
+  const tagged = courses.map(c =>
+    c.sections.map(s => ({ ...s, courseId: c.id, courseName: c.name,
+                           professor: c.professor, rating: c.rating }))
+  );
+  const results = [];
+  function recurse(idx, picked) {
+    if (idx === tagged.length) { results.push(picked); return; }
+    for (const candidate of tagged[idx]) {
+      const conflict = picked.some(p => timesOverlap(p, candidate));
+      if (!conflict) recurse(idx + 1, [...picked, candidate]);
+    }
+  }
+  recurse(0, []);
+  return results;
+}
+
+export function averageStartMinutes(schedule) {
+  if (schedule.length === 0) return 0;
+  const sum = schedule.reduce((acc, s) => {
+    const [h, m] = s.startTime.split(":").map(Number);
+    return acc + h * 60 + m;
+  }, 0);
+  return sum / schedule.length;
+}
+
+export function sortSchedules(permutations, preference) {
+  const copy = [...permutations];
+  copy.sort((a, b) => {
+    const aAvg = averageStartMinutes(a);
+    const bAvg = averageStartMinutes(b);
+    return preference === "night" ? bAvg - aAvg : aAvg - bAvg;
+  });
+  return copy;
+}
