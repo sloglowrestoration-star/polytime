@@ -104,7 +104,9 @@ function renderSummary(schedule, warnings = [], failMsg = null, reasons = []) {
   document.getElementById("prev-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx - 1));
   document.getElementById("next-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx + 1));
   document.getElementById("export-ics-btn")?.addEventListener("click", () => {
-    const icsText = generateIcs(state.topSchedules[state.activeIdx]);
+    const schedule = state.topSchedules[state.activeIdx];
+    if (!schedule) return;
+    const icsText = generateIcs(schedule);
     const blob    = new Blob([icsText], { type: "text/calendar" });
     const url     = URL.createObjectURL(blob);
     const a       = document.createElement("a");
