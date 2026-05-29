@@ -7,6 +7,7 @@ function parseRawDateTime(raw) {
   // raw examples: "20260525T090000Z", "20260525T090000", "20260525"
   // Strip TZID parameter if present (value after the colon is what we want)
   const valuePart = raw.includes(":") ? raw.split(":").pop() : raw;
+  const isUtc = valuePart.endsWith("Z");
   const clean = valuePart.replace(/Z$/, "");
   if (!clean.includes("T")) return null; // all-day — skip
   const datePart = clean.slice(0, 8);
@@ -14,11 +15,15 @@ function parseRawDateTime(raw) {
   const year  = parseInt(datePart.slice(0, 4), 10);
   const month = parseInt(datePart.slice(4, 6), 10) - 1;
   const day   = parseInt(datePart.slice(6, 8), 10);
-  const h     = timePart.slice(0, 2);
-  const mi    = timePart.slice(2, 4);
-  // Use local-time constructor so getDay() gives the user's calendar day
-  const date = new Date(year, month, day, parseInt(h, 10), parseInt(mi, 10));
-  return { date, timeStr: `${h}:${mi}` };
+  const h     = parseInt(timePart.slice(0, 2), 10);
+  const mi    = parseInt(timePart.slice(2, 4), 10);
+  // Z suffix = UTC; convert to local so getDay()/getHours() reflect the user's calendar
+  const date = isUtc
+    ? new Date(Date.UTC(year, month, day, h, mi))
+    : new Date(year, month, day, h, mi);
+  const localH  = String(date.getHours()).padStart(2, "0");
+  const localMi = String(date.getMinutes()).padStart(2, "0");
+  return { date, timeStr: `${localH}:${localMi}` };
 }
 
 function getPropertyValue(block, key) {

@@ -112,12 +112,12 @@ function applyIcsEvents(events) {
   const blocks = getBlocks();
   let addedSlots = 0;
   events.forEach(event => {
-    const startSlot = timeToSlot(event.startTime);
-    const endSlot   = timeToSlot(event.endTime);
-    if (startSlot < 0 || endSlot > SLOT_COUNT) return; // outside calendar range
+    const clippedStart = Math.max(0, timeToSlot(event.startTime));
+    const clippedEnd   = Math.min(SLOT_COUNT, timeToSlot(event.endTime));
+    if (clippedStart >= clippedEnd) return; // fully outside calendar range
     event.days.forEach(day => {
       if (!DAYS.includes(day)) return;
-      for (let s = startSlot; s < endSlot; s++) {
+      for (let s = clippedStart; s < clippedEnd; s++) {
         const key = blockKey(day, s);
         if (!blocks.has(key)) { blocks.add(key); addedSlots++; }
       }

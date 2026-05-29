@@ -81,3 +81,44 @@ test("parseIcs: multiple events in one file", () => {
   expect(events[0].days).toEqual(["M","W","F"]);
   expect(events[1].days).toEqual(["T","R"]);
 });
+
+// UTC Z-suffix handling
+test("parseIcs: Z-suffix UTC times are converted to local time", () => {
+  // 2026-05-26 17:00 UTC — compute expected local time for this machine
+  const ref = new Date(Date.UTC(2026, 4, 26, 17, 0));
+  const expectedStart = `${String(ref.getHours()).padStart(2,"0")}:${String(ref.getMinutes()).padStart(2,"0")}`;
+  const UTC_ICS = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART:20260526T170000Z
+DTEND:20260526T180000Z
+SUMMARY:UTC Meeting
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseIcs(UTC_ICS);
+  // Only assert if local conversion lands on a weekday (Mon-Fri)
+  const localDow = ref.getDay();
+  if (localDow >= 1 && localDow <= 5) {
+    expect(events).toHaveLength(1);
+    expect(events[0].startTime).toBe(expectedStart);
+  }
+});
+
+test("parseIcs: Z-suffix does not leave the raw UTC hour as the event time", () => {
+  // If the machine is not in UTC, stripping Z and treating as local gives the wrong time.
+  // Verify the parser produces the same result as manually constructing a local Date from UTC.
+  const ref = new Date(Date.UTC(2026, 4, 26, 3, 0)); // 03:00 UTC — differs from local in most timezones
+  const expectedStart = `${String(ref.getHours()).padStart(2,"0")}:${String(ref.getMinutes()).padStart(2,"0")}`;
+  const UTC_ICS = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART:20260526T030000Z
+DTEND:20260526T040000Z
+SUMMARY:UTC Early
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseIcs(UTC_ICS);
+  const localDow = ref.getDay();
+  if (localDow >= 1 && localDow <= 5) {
+    expect(events).toHaveLength(1);
+    expect(events[0].startTime).toBe(expectedStart);
+  }
+});
