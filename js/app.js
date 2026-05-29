@@ -23,7 +23,7 @@ function saveToStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     selected: [...state.selected],
     preference: state.preference,
-    blocks: [...getBlocks()],
+    blocks: Object.fromEntries(getBlocks()),
     filters: state.filters
   }));
 }
@@ -167,7 +167,7 @@ function applyIcsEvents(events) {
       if (!DAYS.includes(day)) return;
       for (let s = clippedStart; s < clippedEnd; s++) {
         const key = blockKey(day, s);
-        if (!blocks.has(key)) { blocks.add(key); addedSlots++; }
+        if (!blocks.has(key)) { blocks.set(key, ""); addedSlots++; }
       }
     });
   });
@@ -229,7 +229,11 @@ function wireControls() {
     state.selected = new Set(saved.selected.filter(id => state.courses.some(c => c.id === id)));
     state.preference = saved.preference ?? "none";
     const blocks = getBlocks();
-    saved.blocks.forEach(k => blocks.add(k));
+    if (Array.isArray(saved.blocks)) {
+      saved.blocks.forEach(k => blocks.set(k, ""));         // old format: array of key strings
+    } else {
+      Object.entries(saved.blocks || {}).forEach(([k, v]) => blocks.set(k, v)); // new format
+    }
     renderBlocks(blocks);
     const radio = document.querySelector(`input[name="preference"][value="${state.preference}"]`);
     if (radio) radio.checked = true;
