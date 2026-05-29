@@ -1,6 +1,7 @@
 import {
   timesOverlap, blockConflicts, filterSections,
-  generatePermutations, sortSchedules, detectWarnings
+  generatePermutations, sortSchedules, detectWarnings,
+  totalGapMinutes, scoreSchedule
 } from "../js/optimizer.js";
 
 const A = { id:"A1", days:["M","W"], startTime:"09:00", endTime:"10:00" };
@@ -104,4 +105,63 @@ test("detectWarnings: morning person with all-early classes gets no warning", ()
     { courseId:"ENGL134", startTime:"08:10", endTime:"09:30", days:["T","R"] }
   ];
   expect(detectWarnings(schedule, "morning")).toHaveLength(0);
+});
+
+// totalGapMinutes
+test("totalGapMinutes: back-to-back classes on same day -> 0", () => {
+  const schedule = [
+    { days:["M"], startTime:"09:00", endTime:"10:00" },
+    { days:["M"], startTime:"10:00", endTime:"11:00" }
+  ];
+  expect(totalGapMinutes(schedule)).toBe(0);
+});
+test("totalGapMinutes: 90-min gap on one day -> 90", () => {
+  const schedule = [
+    { days:["M"], startTime:"09:00", endTime:"10:00" },
+    { days:["M"], startTime:"11:30", endTime:"12:30" }
+  ];
+  expect(totalGapMinutes(schedule)).toBe(90);
+});
+test("totalGapMinutes: classes on different days have no gap between them", () => {
+  const schedule = [
+    { days:["M","W"], startTime:"09:00", endTime:"10:00" },
+    { days:["T","R"], startTime:"14:00", endTime:"15:00" }
+  ];
+  expect(totalGapMinutes(schedule)).toBe(0);
+});
+test("totalGapMinutes: gaps on multiple days are summed", () => {
+  const schedule = [
+    { days:["M","W"], startTime:"09:00", endTime:"10:00" },
+    { days:["M","W"], startTime:"11:00", endTime:"12:00" }
+  ];
+  // 60-min gap on M + 60-min gap on W = 120
+  expect(totalGapMinutes(schedule)).toBe(120);
+});
+
+// scoreSchedule
+test("scoreSchedule: higher-rated professor wins when all else equal", () => {
+  const lowRating  = [{ days:["M"], startTime:"10:00", endTime:"11:00", rating: 2 }];
+  const highRating = [{ days:["M"], startTime:"10:00", endTime:"11:00", rating: 5 }];
+  expect(scoreSchedule(highRating, "morning")).toBeGreaterThan(scoreSchedule(lowRating, "morning"));
+});
+test("scoreSchedule: fewer days on campus wins when rating and gaps are equal", () => {
+  const twoDays  = [{ days:["M","W"], startTime:"10:00", endTime:"11:00", rating: 4 }];
+  const fourDays = [
+    { days:["M"],   startTime:"10:00", endTime:"11:00", rating: 4 },
+    { days:["T"],   startTime:"10:00", endTime:"11:00", rating: 4 },
+    { days:["W"],   startTime:"10:00", endTime:"11:00", rating: 4 },
+    { days:["R"],   startTime:"10:00", endTime:"11:00", rating: 4 }
+  ];
+  expect(scoreSchedule(twoDays, "morning")).toBeGreaterThan(scoreSchedule(fourDays, "morning"));
+});
+test("scoreSchedule: no-gap schedule beats gappy schedule when rating/days equal", () => {
+  const noGap   = [
+    { days:["M"], startTime:"09:00", endTime:"10:00", rating: 4 },
+    { days:["M"], startTime:"10:00", endTime:"11:00", rating: 4 }
+  ];
+  const bigGap  = [
+    { days:["M"], startTime:"09:00", endTime:"10:00", rating: 4 },
+    { days:["M"], startTime:"12:00", endTime:"13:00", rating: 4 }
+  ];
+  expect(scoreSchedule(noGap, "morning")).toBeGreaterThan(scoreSchedule(bigGap, "morning"));
 });

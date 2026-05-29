@@ -77,12 +77,46 @@ export function detectWarnings(schedule, preference) {
   return warnings;
 }
 
+export function totalGapMinutes(schedule) {
+  const byDay = {};
+  for (const s of schedule) {
+    for (const d of s.days) {
+      if (!byDay[d]) byDay[d] = [];
+      byDay[d].push(s);
+    }
+  }
+  let total = 0;
+  for (const sections of Object.values(byDay)) {
+    sections.sort((a, b) => a.startTime.localeCompare(b.startTime));
+    for (let i = 1; i < sections.length; i++) {
+      const [eh, em] = sections[i - 1].endTime.split(":").map(Number);
+      const [sh, sm] = sections[i].startTime.split(":").map(Number);
+      const gap = (sh * 60 + sm) - (eh * 60 + em);
+      if (gap > 0) total += gap;
+    }
+  }
+  return total;
+}
+
+export function scoreSchedule(schedule, preference) {
+  const avgRating = schedule.reduce((s, c) => s + (c.rating ?? 0), 0) / schedule.length;
+  const ratingScore = avgRating / 5;
+
+  const uniqueDays = new Set(schedule.flatMap(s => s.days)).size;
+  const daysScore = (5 - uniqueDays) / 4;
+
+  const gapMins = totalGapMinutes(schedule);
+  const gapScore = Math.max(0, 1 - gapMins / 120);
+
+  const avgStart = averageStartMinutes(schedule);
+  const startNorm = Math.min(1, Math.max(0, (avgStart - 8 * 60) / (12 * 60)));
+  const startScore = preference === "night" ? startNorm : 1 - startNorm;
+
+  return 0.35 * ratingScore + 0.25 * daysScore + 0.25 * gapScore + 0.15 * startScore;
+}
+
 export function sortSchedules(permutations, preference) {
   const copy = [...permutations];
-  copy.sort((a, b) => {
-    const aAvg = averageStartMinutes(a);
-    const bAvg = averageStartMinutes(b);
-    return preference === "night" ? bAvg - aAvg : aAvg - bAvg;
-  });
+  copy.sort((a, b) => scoreSchedule(b, preference) - scoreSchedule(a, preference));
   return copy;
 }
