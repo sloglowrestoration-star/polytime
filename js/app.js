@@ -10,7 +10,9 @@ import {
 const state = {
   courses: [],
   selected: new Set(),
-  preference: "morning"
+  preference: "morning",
+  topSchedules: [],
+  activeIdx: 0
 };
 
 async function loadCourses() {
@@ -46,12 +48,19 @@ function renderSummary(schedule, warnings = []) {
     box.innerHTML = `<p class="empty-msg">No valid schedule found. Try removing block-outs or excluding a course.</p>`;
     return;
   }
+  const navHtml = state.topSchedules.length > 1
+    ? `<div class="schedule-nav">
+        <button id="prev-schedule" ${state.activeIdx === 0 ? "disabled" : ""}>&#9664;</button>
+        <span>Schedule ${state.activeIdx + 1} of ${state.topSchedules.length}</span>
+        <button id="next-schedule" ${state.activeIdx === state.topSchedules.length - 1 ? "disabled" : ""}>&#9654;</button>
+       </div>`
+    : "";
   const warningHtml = warnings.length > 0
     ? `<div class="warning-box">
         ⚠ ${warnings.map(w => `<div>${w}</div>`).join("")}
        </div>`
     : "";
-  box.innerHTML = warningHtml + schedule
+  box.innerHTML = navHtml + warningHtml + schedule
     .slice()
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
     .map(s => `
@@ -62,6 +71,16 @@ function renderSummary(schedule, warnings = []) {
           &middot; ${s.professor} (${s.rating.toFixed(1)}★)
         </div>
       </div>`).join("");
+  document.getElementById("prev-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx - 1));
+  document.getElementById("next-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx + 1));
+}
+
+function showSchedule(idx) {
+  state.activeIdx = idx;
+  const schedule = state.topSchedules[idx];
+  const warnings = detectWarnings(schedule, state.preference);
+  renderSchedule(schedule);
+  renderSummary(schedule, warnings);
 }
 
 function onGenerate() {
@@ -79,15 +98,14 @@ function onGenerate() {
   }
   const perms = generatePermutations(filtered);
   const sorted = sortSchedules(perms, state.preference);
-  const top = sorted[0] || null;
-  if (!top) {
+  state.topSchedules = sorted.slice(0, 3);
+  state.activeIdx = 0;
+  if (state.topSchedules.length === 0) {
     clearSchedule();
     renderSummary(null);
     return;
   }
-  const warnings = detectWarnings(top, state.preference);
-  renderSchedule(top);
-  renderSummary(top, warnings);
+  showSchedule(0);
 }
 
 function applyIcsEvents(events) {
