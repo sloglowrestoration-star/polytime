@@ -120,6 +120,19 @@ export function scoreSchedule(schedule, preference) {
   return 0.35 * ratingScore + 0.25 * daysScore + 0.25 * gapScore + 0.15 * startScore;
 }
 
+export function diagnoseConflicts(courses) {
+  const reasons = [];
+  for (let i = 0; i < courses.length; i++) {
+    for (let j = i + 1; j < courses.length; j++) {
+      const a = courses[i];
+      const b = courses[j];
+      const allOverlap = a.sections.every(sa => b.sections.every(sb => timesOverlap(sa, sb)));
+      if (allOverlap) reasons.push(`${a.id} and ${b.id} — every section overlaps`);
+    }
+  }
+  return reasons;
+}
+
 export function sortSchedules(permutations, preference) {
   const copy = [...permutations];
   copy.sort((a, b) => scoreSchedule(b, preference) - scoreSchedule(a, preference));

@@ -4,7 +4,7 @@ import {
 } from "./calendar.js";
 import { parseIcs } from "./ics-parser.js";
 import {
-  filterSections, generatePermutations, sortSchedules, detectWarnings
+  filterSections, generatePermutations, sortSchedules, detectWarnings, diagnoseConflicts
 } from "./optimizer.js";
 
 const state = {
@@ -61,10 +61,10 @@ function renderCourseList() {
   });
 }
 
-function renderSummary(schedule, warnings = []) {
+function renderSummary(schedule, warnings = [], failMsg = null) {
   const box = document.getElementById("schedule-summary");
   if (!schedule || schedule.length === 0) {
-    box.innerHTML = `<p class="empty-msg">No valid schedule found. Try removing block-outs or excluding a course.</p>`;
+    box.innerHTML = `<p class="empty-msg">${failMsg ?? "No valid schedule found. Try removing block-outs or excluding a course."}</p>`;
     return;
   }
   const navHtml = state.topSchedules.length > 1
@@ -111,8 +111,11 @@ function onGenerate() {
   }
   const filtered = filterSections(selectedCourses, getBlocks());
   if (filtered.length < selectedCourses.length) {
+    const blockedOut = selectedCourses
+      .filter(c => !filtered.some(f => f.id === c.id))
+      .map(c => c.id);
     clearSchedule();
-    renderSummary(null);
+    renderSummary(null, [], `All sections of ${blockedOut.join(", ")} overlap with your block-outs. Clear some blocks or deselect the course.`);
     return;
   }
   const perms = generatePermutations(filtered);
@@ -120,8 +123,12 @@ function onGenerate() {
   state.topSchedules = sorted.slice(0, 3);
   state.activeIdx = 0;
   if (state.topSchedules.length === 0) {
+    const conflicts = diagnoseConflicts(filtered);
+    const failMsg = conflicts.length > 0
+      ? `No valid schedule found. These courses conflict on all sections: ${conflicts.join("; ")}.`
+      : `No valid schedule found — too many courses overlap. Try deselecting one.`;
     clearSchedule();
-    renderSummary(null);
+    renderSummary(null, [], failMsg);
     return;
   }
   showSchedule(0);

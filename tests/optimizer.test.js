@@ -1,7 +1,7 @@
 import {
   timesOverlap, blockConflicts, filterSections,
   generatePermutations, sortSchedules, detectWarnings,
-  totalGapMinutes, scoreSchedule
+  totalGapMinutes, scoreSchedule, diagnoseConflicts
 } from "../js/optimizer.js";
 
 const A = { id:"A1", days:["M","W"], startTime:"09:00", endTime:"10:00" };
@@ -164,4 +164,34 @@ test("scoreSchedule: no-gap schedule beats gappy schedule when rating/days equal
     { days:["M"], startTime:"12:00", endTime:"13:00", rating: 4 }
   ];
   expect(scoreSchedule(noGap, "morning")).toBeGreaterThan(scoreSchedule(bigGap, "morning"));
+});
+
+// diagnoseConflicts
+test("diagnoseConflicts: returns empty array when no guaranteed conflicts", () => {
+  const courses = [
+    { id:"X", sections:[{ days:["M"], startTime:"09:00", endTime:"10:00" }] },
+    { id:"Y", sections:[{ days:["T"], startTime:"09:00", endTime:"10:00" }] }
+  ];
+  expect(diagnoseConflicts(courses)).toHaveLength(0);
+});
+test("diagnoseConflicts: identifies a pair where all sections overlap", () => {
+  // Both courses have exactly one section and they share a day + time
+  const courses = [
+    { id:"CSC225", sections:[{ days:["M","W","F"], startTime:"09:00", endTime:"10:00" }] },
+    { id:"CPE357", sections:[{ days:["M","W","F"], startTime:"09:00", endTime:"10:00" }] }
+  ];
+  const result = diagnoseConflicts(courses);
+  expect(result).toHaveLength(1);
+  expect(result[0]).toMatch(/CSC225/);
+  expect(result[0]).toMatch(/CPE357/);
+});
+test("diagnoseConflicts: does not flag a pair where at least one section combo is clear", () => {
+  const courses = [
+    { id:"X", sections:[
+      { days:["M"], startTime:"09:00", endTime:"10:00" },
+      { days:["T"], startTime:"14:00", endTime:"15:00" }  // no overlap with Y
+    ]},
+    { id:"Y", sections:[{ days:["M"], startTime:"09:00", endTime:"10:00" }] }
+  ];
+  expect(diagnoseConflicts(courses)).toHaveLength(0);
 });
