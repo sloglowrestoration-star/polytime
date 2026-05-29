@@ -23,20 +23,21 @@ export function generateIcs(sections) → string
 
 Each section becomes one `VEVENT` with a weekly `RRULE`. A section meeting on multiple days (e.g. M/W/F) is represented as a single event with `RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR`, not three separate events.
 
-### Quarter Dates
+### Semester Dates
 
-Fall 2026 Cal Poly quarter: **Sept 22 – Dec 12, 2026**.
+Fall 2026 Cal Poly SLO semester (first year on semesters): **Aug 24 – Dec 18, 2026**.
 
-First-occurrence dates by day key:
+Aug 24 is a Monday, so first-occurrence dates map cleanly:
+
 | Day key | Date       |
 |---------|------------|
-| M       | 2026-09-22 |
-| T       | 2026-09-23 |
-| W       | 2026-09-24 |
-| R       | 2026-09-25 |
-| F       | 2026-09-26 |
+| M       | 2026-08-24 |
+| T       | 2026-08-25 |
+| W       | 2026-08-26 |
+| R       | 2026-08-27 |
+| F       | 2026-08-28 |
 
-`DTSTART` uses the earliest matching day in the quarter. `RRULE UNTIL` is `20261212T235959Z`.
+`DTSTART` uses the earliest matching day in the semester. `RRULE UNTIL` is `20261218T235959Z` (end of finals).
 
 ### ICS Format
 
@@ -48,7 +49,7 @@ BEGIN:VEVENT
 UID:polytime-{courseId}-{firstDay}@polytime
 DTSTART:{yyyymmdd}T{hhmmss}
 DTEND:{yyyymmdd}T{hhmmss}
-RRULE:FREQ=WEEKLY;BYDAY={MO,WE,FR};UNTIL=20261212T235959Z
+RRULE:FREQ=WEEKLY;BYDAY={MO,WE,FR};UNTIL=20261218T235959Z
 SUMMARY:{courseId} — {courseName}
 END:VEVENT
 ...
@@ -146,5 +147,5 @@ Build Feature 2 (labeled blocks) first: it changes the `_blocks` data structure 
 
 - Custom user-defined labels (YAGNI)
 - Exporting blocks as ICS busy events
-- Quarter date picker UI (hardcoded Fall 2026)
+- Semester date picker UI (hardcoded Fall 2026)
 - Tests for `generateIcs` (pure string transform, no branching logic)
