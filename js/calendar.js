@@ -18,9 +18,39 @@ export function slotToTime(slot) {
 export function blockKey(day, slot) { return `${day}:${slot}`; }
 
 // --- block store ---
-const _blocks = new Set();
+const _blocks = new Map();
 export function getBlocks() { return _blocks; }
 export function clearBlocks() { _blocks.clear(); renderBlocks(_blocks); }
+
+const LABEL_CLASSES = ["blocked-work", "blocked-gym", "blocked-sleep", "blocked-commute"];
+const CYCLE_LABELS  = ["", "work", "gym", "sleep", "commute"];
+
+function updateBlockedCell(cell, label) {
+  // label: string (including "") = blocked; undefined = not blocked
+  const isBlocked = label !== undefined;
+  cell.classList.toggle("blocked", isBlocked);
+  LABEL_CLASSES.forEach(cls => cell.classList.remove(cls));
+  if (isBlocked && label) cell.classList.add(`blocked-${label}`);
+  const day  = cell.dataset.day;
+  const slot = Number(cell.dataset.slot);
+  if (isBlocked) {
+    cell.setAttribute("aria-pressed", "true");
+    const suffix = label ? ` (${label})` : "";
+    cell.setAttribute("aria-label", `${DAY_LABELS[day]} ${slotToTime(slot)}, blocked${suffix}`);
+  } else if (!cell.classList.contains("scheduled")) {
+    cell.setAttribute("aria-pressed", "false");
+    cell.setAttribute("aria-label", `${DAY_LABELS[day]} ${slotToTime(slot)}, available`);
+  }
+}
+
+function cycleLabel(cell) {
+  const key  = blockKey(cell.dataset.day, Number(cell.dataset.slot));
+  if (!_blocks.has(key)) return;
+  const cur  = _blocks.get(key);
+  const next = CYCLE_LABELS[(CYCLE_LABELS.indexOf(cur) + 1) % CYCLE_LABELS.length];
+  _blocks.set(key, next);
+  updateBlockedCell(cell, next);
+}
 
 // --- grid render ---
 export function initCalendar(containerId = "calendar") {
@@ -60,14 +90,7 @@ export function initCalendar(containerId = "calendar") {
 export function renderBlocks(blocks) {
   document.querySelectorAll(".cal-cell").forEach(cell => {
     const key = blockKey(cell.dataset.day, Number(cell.dataset.slot));
-    const isBlocked = blocks.has(key);
-    cell.classList.toggle("blocked", isBlocked);
-    cell.setAttribute("aria-pressed", isBlocked ? "true" : "false");
-    if (isBlocked) {
-      cell.setAttribute("aria-label", `${DAY_LABELS[cell.dataset.day]} ${slotToTime(Number(cell.dataset.slot))}, blocked`);
-    } else if (!cell.classList.contains("scheduled")) {
-      cell.setAttribute("aria-label", `${DAY_LABELS[cell.dataset.day]} ${slotToTime(Number(cell.dataset.slot))}, available`);
-    }
+    updateBlockedCell(cell, blocks.get(key));
   });
 }
 
@@ -104,8 +127,10 @@ export function renderSchedule(sections) {
 // --- drag-to-block ---
 export function attachDragHandlers(onChange = () => {}) {
   const container = document.getElementById("calendar");
-  let dragging = false;
-  let mode = "add"; // "add" or "remove" — determined by first cell touched
+  let dragging    = false;
+  let mode        = "add";
+  let pendingCell = null;
+  let hasDragged  = false;
 
   function cellKey(cell) {
     return blockKey(cell.dataset.day, Number(cell.dataset.slot));
@@ -113,56 +138,68 @@ export function attachDragHandlers(onChange = () => {}) {
   function apply(cell) {
     if (!cell.classList.contains("cal-cell")) return;
     const key = cellKey(cell);
-    if (mode === "add") _blocks.add(key);
+    if (mode === "add") _blocks.set(key, "");
     else _blocks.delete(key);
-    cell.classList.toggle("blocked", _blocks.has(key));
+    updateBlockedCell(cell, _blocks.get(key));
   }
 
   container.addEventListener("mousedown", e => {
     const cell = e.target.closest(".cal-cell");
     if (!cell) return;
     e.preventDefault();
-    dragging = true;
-    mode = _blocks.has(cellKey(cell)) ? "remove" : "add";
-    apply(cell);
+    dragging    = true;
+    hasDragged  = false;
+    if (_blocks.has(cellKey(cell))) {
+      mode        = "remove";
+      pendingCell = cell;   // defer — may be a click-to-cycle, not a drag-to-remove
+    } else {
+      mode        = "add";
+      pendingCell = null;
+      apply(cell);
+    }
   });
   container.addEventListener("mouseover", e => {
     if (!dragging) return;
     const cell = e.target.closest(".cal-cell");
-    if (cell) apply(cell);
+    if (!cell) return;
+    if (!hasDragged) {
+      hasDragged = true;
+      if (pendingCell) apply(pendingCell);  // flush deferred removal now that it's a real drag
+    }
+    apply(cell);
   });
   window.addEventListener("mouseup", () => {
     if (dragging) {
-      dragging = false;
+      if (!hasDragged && pendingCell) cycleLabel(pendingCell);  // click on blocked cell
+      dragging    = false;
+      hasDragged  = false;
+      pendingCell = null;
       onChange(_blocks);
     }
   });
 
-  // right-click to remove a single cell
   container.addEventListener("contextmenu", e => {
     const cell = e.target.closest(".cal-cell");
     if (!cell) return;
     e.preventDefault();
     const key = cellKey(cell);
     _blocks.delete(key);
-    cell.classList.remove("blocked");
-    cell.setAttribute("aria-pressed", "false");
-    cell.setAttribute("aria-label", `${DAY_LABELS[cell.dataset.day]} ${slotToTime(Number(cell.dataset.slot))}, available`);
+    updateBlockedCell(cell, undefined);
     onChange(_blocks);
   });
 
-  // keyboard: Space/Enter toggles focused cell; arrow keys move focus
   container.addEventListener("keydown", e => {
     const cell = e.target.closest(".cal-cell");
     if (!cell) return;
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
       const key = cellKey(cell);
-      const nowBlocked = !_blocks.has(key);
-      if (nowBlocked) _blocks.add(key); else _blocks.delete(key);
-      cell.classList.toggle("blocked", nowBlocked);
-      cell.setAttribute("aria-pressed", nowBlocked ? "true" : "false");
-      cell.setAttribute("aria-label", `${DAY_LABELS[cell.dataset.day]} ${slotToTime(Number(cell.dataset.slot))}, ${nowBlocked ? "blocked" : "available"}`);
+      if (_blocks.has(key)) {
+        cycleLabel(cell);
+      } else {
+        _blocks.set(key, "");
+        updateBlockedCell(cell, "");
+      }
       onChange(_blocks);
     }
     if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
