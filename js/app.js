@@ -7,6 +7,7 @@ import {
   applyFilters, filterSections, generatePermutations, sortSchedules,
   detectWarnings, diagnoseConflicts, explainSchedule
 } from "./optimizer.js";
+import { generateIcs } from "./ics-export.js";
 
 const state = {
   courses: [],
@@ -98,9 +99,20 @@ function renderSummary(schedule, warnings = [], failMsg = null, reasons = []) {
           ${s.days.join("")} ${s.startTime}&ndash;${s.endTime}
           &middot; ${s.professor} (${s.rating.toFixed(1)}★)
         </div>
-      </div>`).join("") + reasonsHtml;
+      </div>`).join("") + reasonsHtml +
+    `<button id="export-ics-btn" style="margin-top:10px;width:100%;">Export .ics</button>`;
   document.getElementById("prev-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx - 1));
   document.getElementById("next-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx + 1));
+  document.getElementById("export-ics-btn")?.addEventListener("click", () => {
+    const icsText = generateIcs(state.topSchedules[state.activeIdx]);
+    const blob    = new Blob([icsText], { type: "text/calendar" });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement("a");
+    a.href        = url;
+    a.download    = "polytime-schedule.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 function showSchedule(idx) {
