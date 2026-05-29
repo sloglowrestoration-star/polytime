@@ -1,5 +1,5 @@
 :root {
-  --blocked: #ef4444;
+  --blocked: #4b5563;
   --scheduled: #3b82f6;
   --available: #f9fafb;
   --border: #e5e7eb;
@@ -71,12 +71,16 @@ body {
   z-index: 1;
 }
 .cal-cell.blocked {
-  background: var(--blocked);
+  background-color: var(--blocked);
   background-image: repeating-linear-gradient(
     45deg, transparent, transparent 4px,
     rgba(0,0,0,0.12) 4px, rgba(0,0,0,0.12) 5px
   );
 }
+.cal-cell.blocked.blocked-work    { background-color: #3b82f6; }
+.cal-cell.blocked.blocked-gym     { background-color: #ef4444; }
+.cal-cell.blocked.blocked-sleep   { background-color: #8b5cf6; }
+.cal-cell.blocked.blocked-commute { background-color: #f59e0b; }
 .cal-cell.scheduled { background: var(--scheduled); color: white; font-size: 11px; padding: 2px 4px; overflow: hidden; }
 .schedule-summary { font-size: 13px; }
 .schedule-summary .course-row {
