@@ -94,6 +94,18 @@ body {
 .ics-status { font-size: 12px; margin: 4px 0 0; min-height: 16px; }
 .ics-ok   { color: #15803d; }
 .ics-warn { color: #b45309; }
+.why-box {
+  margin-top: 10px; font-size: 12px; color: var(--muted);
+  border-top: 1px solid var(--border); padding-top: 8px;
+}
+.why-box summary {
+  cursor: pointer; font-weight: 600; color: var(--text);
+  list-style: none; user-select: none;
+}
+.why-box summary::before { content: "▶ "; font-size: 10px; }
+.why-box[open] summary::before { content: "▼ "; }
+.why-box ul { margin: 6px 0 0 12px; padding: 0; line-height: 1.7; }
+.why-box li { list-style: disc; }
 .schedule-nav {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 10px; font-size: 13px; font-weight: 600;

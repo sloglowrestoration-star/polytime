@@ -120,6 +120,34 @@ export function scoreSchedule(schedule, preference) {
   return 0.35 * ratingScore + 0.25 * daysScore + 0.25 * gapScore + 0.15 * startScore;
 }
 
+const EXPLAIN_DAY_LABELS = { M:"Mon", T:"Tue", W:"Wed", R:"Thu", F:"Fri" };
+
+export function explainSchedule(schedule, preference) {
+  const reasons = [];
+
+  const avgRating = schedule.reduce((s, c) => s + (c.rating ?? 0), 0) / schedule.length;
+  reasons.push(`${avgRating.toFixed(1)}★ avg professor rating`);
+
+  const days = [...new Set(schedule.flatMap(s => s.days))].sort();
+  reasons.push(`${days.length} day${days.length !== 1 ? "s" : ""} on campus (${days.map(d => EXPLAIN_DAY_LABELS[d]).join(", ")})`);
+
+  const gapMins = totalGapMinutes(schedule);
+  reasons.push(gapMins === 0 ? "No idle gaps between classes" : `${gapMins} min total idle time`);
+
+  const maxEnd = schedule.reduce((max, s) => s.endTime > max ? s.endTime : max, "00:00");
+  reasons.push(`Done by ${maxEnd}`);
+
+  if (preference === "morning") {
+    const earliest = schedule.reduce((min, s) => s.startTime < min ? s.startTime : min, "23:59");
+    reasons.push(`Earliest start: ${earliest}`);
+  } else if (preference === "night") {
+    const latest = schedule.reduce((max, s) => s.startTime > max ? s.startTime : max, "00:00");
+    reasons.push(`Latest start: ${latest}`);
+  }
+
+  return reasons;
+}
+
 export function diagnoseConflicts(courses) {
   const reasons = [];
   for (let i = 0; i < courses.length; i++) {

@@ -4,7 +4,8 @@ import {
 } from "./calendar.js";
 import { parseIcs } from "./ics-parser.js";
 import {
-  filterSections, generatePermutations, sortSchedules, detectWarnings, diagnoseConflicts
+  filterSections, generatePermutations, sortSchedules, detectWarnings,
+  diagnoseConflicts, explainSchedule
 } from "./optimizer.js";
 
 const state = {
@@ -61,7 +62,7 @@ function renderCourseList() {
   });
 }
 
-function renderSummary(schedule, warnings = [], failMsg = null) {
+function renderSummary(schedule, warnings = [], failMsg = null, reasons = []) {
   const box = document.getElementById("schedule-summary");
   if (!schedule || schedule.length === 0) {
     box.innerHTML = `<p class="empty-msg">${failMsg ?? "No valid schedule found. Try removing block-outs or excluding a course."}</p>`;
@@ -79,6 +80,12 @@ function renderSummary(schedule, warnings = [], failMsg = null) {
         ⚠ ${warnings.map(w => `<div>${w}</div>`).join("")}
        </div>`
     : "";
+  const reasonsHtml = reasons.length > 0
+    ? `<details class="why-box">
+        <summary>Why this schedule?</summary>
+        <ul>${reasons.map(r => `<li>${r}</li>`).join("")}</ul>
+       </details>`
+    : "";
   box.innerHTML = navHtml + warningHtml + schedule
     .slice()
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -89,7 +96,7 @@ function renderSummary(schedule, warnings = [], failMsg = null) {
           ${s.days.join("")} ${s.startTime}&ndash;${s.endTime}
           &middot; ${s.professor} (${s.rating.toFixed(1)}★)
         </div>
-      </div>`).join("");
+      </div>`).join("") + reasonsHtml;
   document.getElementById("prev-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx - 1));
   document.getElementById("next-schedule")?.addEventListener("click", () => showSchedule(state.activeIdx + 1));
 }
@@ -98,8 +105,9 @@ function showSchedule(idx) {
   state.activeIdx = idx;
   const schedule = state.topSchedules[idx];
   const warnings = detectWarnings(schedule, state.preference);
+  const reasons  = explainSchedule(schedule, state.preference);
   renderSchedule(schedule);
-  renderSummary(schedule, warnings);
+  renderSummary(schedule, warnings, null, reasons);
 }
 
 function onGenerate() {

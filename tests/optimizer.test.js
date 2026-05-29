@@ -1,7 +1,7 @@
 import {
   timesOverlap, blockConflicts, filterSections,
   generatePermutations, sortSchedules, detectWarnings,
-  totalGapMinutes, scoreSchedule, diagnoseConflicts
+  totalGapMinutes, scoreSchedule, diagnoseConflicts, explainSchedule
 } from "../js/optimizer.js";
 
 const A = { id:"A1", days:["M","W"], startTime:"09:00", endTime:"10:00" };
@@ -194,4 +194,36 @@ test("diagnoseConflicts: does not flag a pair where at least one section combo i
     { id:"Y", sections:[{ days:["M"], startTime:"09:00", endTime:"10:00" }] }
   ];
   expect(diagnoseConflicts(courses)).toHaveLength(0);
+});
+
+
+// explainSchedule
+const EXPLAIN_SCHEDULE = [
+  { days:["M","W","F"], startTime:"09:00", endTime:"10:00", rating: 4.5, courseId:"CSC225", courseName:"Org" },
+  { days:["T","R"],     startTime:"11:00", endTime:"12:30", rating: 3.5, courseId:"MATH141", courseName:"Calc" }
+];
+
+test("explainSchedule: includes avg rating", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "none");
+  expect(reasons.some(r => r.includes("4.0★"))).toBe(true);
+});
+test("explainSchedule: includes days on campus count", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "none");
+  expect(reasons.some(r => r.includes("5 days"))).toBe(true);
+});
+test("explainSchedule: includes gap info", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "none");
+  expect(reasons.some(r => r.toLowerCase().includes("gap"))).toBe(true);
+});
+test("explainSchedule: morning preference adds earliest start", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "morning");
+  expect(reasons.some(r => r.includes("09:00"))).toBe(true);
+});
+test("explainSchedule: night preference adds latest start", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "night");
+  expect(reasons.some(r => r.includes("11:00"))).toBe(true);
+});
+test("explainSchedule: no preference omits start-time reason", () => {
+  const reasons = explainSchedule(EXPLAIN_SCHEDULE, "none");
+  expect(reasons.some(r => r.toLowerCase().includes("start"))).toBe(false);
 });
