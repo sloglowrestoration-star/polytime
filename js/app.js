@@ -10,7 +10,7 @@ import {
 const state = {
   courses: [],
   selected: new Set(),
-  preference: "morning",
+  preference: "none",
   topSchedules: [],
   activeIdx: 0
 };
@@ -24,7 +24,8 @@ async function loadCourses() {
 function renderCourseList() {
   const ul = document.getElementById("course-list");
   ul.innerHTML = "";
-  state.courses.forEach(c => {
+  const sorted = [...state.courses].sort((a, b) => a.id.localeCompare(b.id));
+  sorted.forEach(c => {
     const li = document.createElement("li");
     li.innerHTML = `
       <label>

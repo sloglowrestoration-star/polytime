@@ -64,6 +64,7 @@ const NIGHT_EARLY_CUTOFF  = timeToSlot("10:00"); // slot 6
 const MORNING_LATE_CUTOFF = timeToSlot("15:00"); // slot 16
 
 export function detectWarnings(schedule, preference) {
+  if (preference === "none") return [];
   const warnings = [];
   schedule.forEach(section => {
     const start = timeToSlot(section.startTime);
@@ -107,6 +108,10 @@ export function scoreSchedule(schedule, preference) {
 
   const gapMins = totalGapMinutes(schedule);
   const gapScore = Math.max(0, 1 - gapMins / 120);
+
+  if (preference === "none") {
+    return 0.40 * ratingScore + 0.30 * daysScore + 0.30 * gapScore;
+  }
 
   const avgStart = averageStartMinutes(schedule);
   const startNorm = Math.min(1, Math.max(0, (avgStart - 8 * 60) / (12 * 60)));
