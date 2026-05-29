@@ -1,5 +1,5 @@
 import {
-  timesOverlap, blockConflicts, filterSections,
+  applyFilters, timesOverlap, blockConflicts, filterSections,
   generatePermutations, sortSchedules, detectWarnings,
   totalGapMinutes, scoreSchedule, diagnoseConflicts, explainSchedule
 } from "../js/optimizer.js";
@@ -226,4 +226,38 @@ test("explainSchedule: night preference adds latest start", () => {
 test("explainSchedule: no preference omits start-time reason", () => {
   const reasons = explainSchedule(EXPLAIN_SCHEDULE, "none");
   expect(reasons.some(r => r.toLowerCase().includes("start"))).toBe(false);
+});
+
+// applyFilters
+const FILTER_COURSES = [
+  { id:"A", sections:[
+    { days:["M","W","F"], startTime:"09:00", endTime:"10:00" },
+    { days:["T","R"],     startTime:"14:00", endTime:"15:30" }
+  ]},
+  { id:"B", sections:[
+    { days:["F"],         startTime:"10:00", endTime:"11:00" }
+  ]}
+];
+
+test("applyFilters noFriday: removes Friday-only sections and drops course with no survivors", () => {
+  const result = applyFilters(FILTER_COURSES, { noFriday: true });
+  expect(result).toHaveLength(1);          // B dropped (only Friday section)
+  expect(result[0].id).toBe("A");
+  expect(result[0].sections).toHaveLength(1); // only TR section survives
+  expect(result[0].sections[0].days).toEqual(["T","R"]);
+});
+test("applyFilters avoidAfter: removes sections starting after the cutoff", () => {
+  const result = applyFilters(FILTER_COURSES, { avoidAfter: "13:00" });
+  expect(result[0].sections).toHaveLength(1); // 09:00 survives, 14:00 removed
+  expect(result[0].sections[0].startTime).toBe("09:00");
+});
+test("applyFilters: empty filters returns all courses unchanged", () => {
+  const result = applyFilters(FILTER_COURSES, {});
+  expect(result).toHaveLength(2);
+});
+test("applyFilters: both filters applied together", () => {
+  const result = applyFilters(FILTER_COURSES, { noFriday: true, avoidAfter: "11:00" });
+  // A: MWF 09:00 removed (has F), TR 14:00 removed (after 11:00) → A dropped
+  // B: F 10:00 removed (has F) → B dropped
+  expect(result).toHaveLength(0);
 });

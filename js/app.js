@@ -4,8 +4,8 @@ import {
 } from "./calendar.js";
 import { parseIcs } from "./ics-parser.js";
 import {
-  filterSections, generatePermutations, sortSchedules, detectWarnings,
-  diagnoseConflicts, explainSchedule
+  applyFilters, filterSections, generatePermutations, sortSchedules,
+  detectWarnings, diagnoseConflicts, explainSchedule
 } from "./optimizer.js";
 
 const state = {
@@ -13,7 +13,8 @@ const state = {
   selected: new Set(),
   preference: "none",
   topSchedules: [],
-  activeIdx: 0
+  activeIdx: 0,
+  filters: { noFriday: false, maxDays: null, avoidAfter: null }
 };
 
 const STORAGE_KEY = "polytime-state";
@@ -22,7 +23,8 @@ function saveToStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     selected: [...state.selected],
     preference: state.preference,
-    blocks: [...getBlocks()]
+    blocks: [...getBlocks()],
+    filters: state.filters
   }));
 }
 
@@ -117,16 +119,28 @@ function onGenerate() {
     renderSummary(null);
     return;
   }
-  const filtered = filterSections(selectedCourses, getBlocks());
-  if (filtered.length < selectedCourses.length) {
+  const afterBlocks = filterSections(selectedCourses, getBlocks());
+  if (afterBlocks.length < selectedCourses.length) {
     const blockedOut = selectedCourses
-      .filter(c => !filtered.some(f => f.id === c.id))
+      .filter(c => !afterBlocks.some(f => f.id === c.id))
       .map(c => c.id);
     clearSchedule();
     renderSummary(null, [], `All sections of ${blockedOut.join(", ")} overlap with your block-outs. Clear some blocks or deselect the course.`);
     return;
   }
-  const perms = generatePermutations(filtered);
+  const filtered = applyFilters(afterBlocks, state.filters);
+  if (filtered.length < afterBlocks.length) {
+    const filteredOut = afterBlocks
+      .filter(c => !filtered.some(f => f.id === c.id))
+      .map(c => c.id);
+    clearSchedule();
+    renderSummary(null, [], `No sections of ${filteredOut.join(", ")} match your current filters. Try relaxing a filter.`);
+    return;
+  }
+  let perms = generatePermutations(filtered);
+  if (state.filters.maxDays) {
+    perms = perms.filter(sched => new Set(sched.flatMap(s => s.days)).size <= state.filters.maxDays);
+  }
   const sorted = sortSchedules(perms, state.preference);
   state.topSchedules = sorted.slice(0, 3);
   state.activeIdx = 0;
@@ -164,6 +178,18 @@ function applyIcsEvents(events) {
 function wireControls() {
   document.querySelectorAll('input[name="preference"]').forEach(r => {
     r.addEventListener("change", e => { state.preference = e.target.value; saveToStorage(); });
+  });
+  document.getElementById("filter-no-friday").addEventListener("change", e => {
+    state.filters.noFriday = e.target.checked;
+    saveToStorage();
+  });
+  document.getElementById("filter-max-days").addEventListener("change", e => {
+    state.filters.maxDays = e.target.value ? Number(e.target.value) : null;
+    saveToStorage();
+  });
+  document.getElementById("filter-avoid-after").addEventListener("change", e => {
+    state.filters.avoidAfter = e.target.value || null;
+    saveToStorage();
   });
   document.getElementById("generate-btn").addEventListener("click", onGenerate);
   document.getElementById("clear-blocks-btn").addEventListener("click", () => {
@@ -207,6 +233,12 @@ function wireControls() {
     renderBlocks(blocks);
     const radio = document.querySelector(`input[name="preference"][value="${state.preference}"]`);
     if (radio) radio.checked = true;
+    if (saved.filters) {
+      state.filters = { ...state.filters, ...saved.filters };
+      if (state.filters.noFriday) document.getElementById("filter-no-friday").checked = true;
+      if (state.filters.maxDays)  document.getElementById("filter-max-days").value = state.filters.maxDays;
+      if (state.filters.avoidAfter) document.getElementById("filter-avoid-after").value = state.filters.avoidAfter;
+    }
   }
 
   renderCourseList();

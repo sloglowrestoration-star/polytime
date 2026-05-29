@@ -24,6 +24,23 @@
         <label><input type="radio" name="preference" value="night" /> Night Person</label>
       </section>
       <section class="sidebar-section">
+        <h2>Filters</h2>
+        <label><input type="checkbox" id="filter-no-friday" /> No Friday classes</label>
+        <div class="filter-row">
+          <label for="filter-max-days">Max days on campus</label>
+          <select id="filter-max-days">
+            <option value="">Any</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <label for="filter-avoid-after">No classes starting after</label>
+          <input type="time" id="filter-avoid-after" min="07:00" max="21:00" />
+        </div>
+      </section>
+      <section class="sidebar-section">
         <h2>Import Calendar</h2>
         <label class="import-label" for="ics-input">
           Upload .ics file

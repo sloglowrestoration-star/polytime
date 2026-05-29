@@ -21,6 +21,21 @@ export function blockConflicts(section, blocks) {
   return false;
 }
 
+export function applyFilters(courses, filters = {}) {
+  const result = [];
+  for (const course of courses) {
+    let sections = course.sections;
+    if (filters.noFriday) {
+      sections = sections.filter(s => !s.days.includes("F"));
+    }
+    if (filters.avoidAfter) {
+      sections = sections.filter(s => s.startTime <= filters.avoidAfter);
+    }
+    if (sections.length > 0) result.push({ ...course, sections });
+  }
+  return result;
+}
+
 export function filterSections(courses, blocks) {
   const result = [];
   for (const course of courses) {
