@@ -64,7 +64,19 @@ body {
   border-bottom: 1px dotted var(--border);
   cursor: pointer;
 }
-.cal-cell.blocked { background: var(--blocked); }
+.cal-cell:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
+}
+.cal-cell.blocked {
+  background: var(--blocked);
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 4px,
+    rgba(0,0,0,0.12) 4px, rgba(0,0,0,0.12) 5px
+  );
+}
 .cal-cell.scheduled { background: var(--scheduled); color: white; font-size: 11px; padding: 2px 4px; overflow: hidden; }
 .schedule-summary { font-size: 13px; }
 .schedule-summary .course-row {

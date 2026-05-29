@@ -28,7 +28,7 @@
           Upload .ics file
           <input type="file" id="ics-input" accept=".ics" hidden />
         </label>
-        <p id="ics-status" class="ics-status"></p>
+        <p id="ics-status" class="ics-status" aria-live="polite" aria-atomic="true"></p>
       </section>
       <section class="sidebar-section">
         <button id="generate-btn" class="primary-btn">Generate Schedule</button>
@@ -36,7 +36,7 @@
       </section>
       <section class="sidebar-section">
         <h2>Top Schedule</h2>
-        <div id="schedule-summary" class="schedule-summary">
+        <div id="schedule-summary" class="schedule-summary" aria-live="polite" aria-atomic="true">
           <p class="empty-msg">Click &ldquo;Generate Schedule&rdquo; to see results.</p>
         </div>
       </section>
