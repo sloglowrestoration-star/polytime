@@ -15,6 +15,23 @@ const state = {
   activeIdx: 0
 };
 
+const STORAGE_KEY = "polytime-state";
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    selected: [...state.selected],
+    preference: state.preference,
+    blocks: [...getBlocks()]
+  }));
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 async function loadCourses() {
   const res = await fetch("./data/courses.json");
   state.courses = await res.json();
@@ -29,7 +46,7 @@ function renderCourseList() {
     const li = document.createElement("li");
     li.innerHTML = `
       <label>
-        <input type="checkbox" id="course-${c.id}" checked />
+        <input type="checkbox" id="course-${c.id}" ${state.selected.has(c.id) ? "checked" : ""} />
         <strong>${c.id}</strong> ${c.name}
         <span style="color:var(--muted); font-size:12px;">
           (${c.professor}, ${c.rating.toFixed(1)}★)
@@ -38,6 +55,7 @@ function renderCourseList() {
     li.querySelector("input").addEventListener("change", e => {
       if (e.target.checked) state.selected.add(c.id);
       else state.selected.delete(c.id);
+      saveToStorage();
     });
     ul.appendChild(li);
   });
@@ -130,11 +148,12 @@ function applyIcsEvents(events) {
 
 function wireControls() {
   document.querySelectorAll('input[name="preference"]').forEach(r => {
-    r.addEventListener("change", e => { state.preference = e.target.value; });
+    r.addEventListener("change", e => { state.preference = e.target.value; saveToStorage(); });
   });
   document.getElementById("generate-btn").addEventListener("click", onGenerate);
   document.getElementById("clear-blocks-btn").addEventListener("click", () => {
     clearBlocks();
+    saveToStorage();
   });
 
   document.getElementById("ics-input").addEventListener("change", e => {
@@ -161,8 +180,20 @@ function wireControls() {
 
 (async function main() {
   initCalendar();
-  attachDragHandlers(blocks => renderBlocks(blocks));
+  attachDragHandlers(blocks => { renderBlocks(blocks); saveToStorage(); });
   await loadCourses();
+
+  const saved = loadFromStorage();
+  if (saved) {
+    state.selected = new Set(saved.selected.filter(id => state.courses.some(c => c.id === id)));
+    state.preference = saved.preference ?? "none";
+    const blocks = getBlocks();
+    saved.blocks.forEach(k => blocks.add(k));
+    renderBlocks(blocks);
+    const radio = document.querySelector(`input[name="preference"][value="${state.preference}"]`);
+    if (radio) radio.checked = true;
+  }
+
   renderCourseList();
   wireControls();
 })();
